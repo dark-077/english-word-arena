@@ -149,6 +149,7 @@ html, body {
   position: absolute; top: 1rem; left: 1.5rem; right: 1.5rem;
   display: flex; justify-content: space-between; align-items: center;
   z-index: 10;
+  pointer-events: none;
 }
 .round-indicator {
   font-family: 'Orbitron', sans-serif;
@@ -160,6 +161,7 @@ html, body {
 .question-zone {
   display: flex; flex-direction: column; align-items: center;
   margin-bottom: 1.5rem;
+  pointer-events: none;
 }
 .question-label {
   font-size: 0.85rem;
@@ -181,6 +183,7 @@ html, body {
   position: relative;
   width: 80px; height: 80px;
   margin: 0.5rem 0;
+  pointer-events: none;
 }
 .timer-ring {
   transform: rotate(-90deg);
@@ -233,6 +236,7 @@ html, body {
   position: absolute; inset: 0;
   opacity: 0; transition: opacity 0.3s;
   border-radius: 20px;
+  pointer-events: none;
 }
 .player-card.p1 { border-color: var(--p1); }
 .player-card.p2 { border-color: var(--p2); }
