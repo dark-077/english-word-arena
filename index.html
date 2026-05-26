@@ -746,6 +746,40 @@ body[data-mode="multi"] .progress-dot.done {
 </div>
 
 <script>
+// ============ BACKGROUND MUSIC ============
+let bgmAudio = null;
+let bgmPlaying = false;
+
+function initBackgroundMusic() {
+  bgmAudio = new Audio('background_music.mp3');
+  bgmAudio.loop = true;
+  bgmAudio.volume = 0.3;
+  
+  // 用户交互后自动播放
+  document.addEventListener('click', () => {
+    if (!bgmPlaying && bgmAudio) {
+      bgmAudio.play().then(() => {
+        bgmPlaying = true;
+      }).catch(e => console.log('BGM play failed:', e));
+    }
+  }, { once: true });
+}
+
+function toggleBackgroundMusic() {
+  if (!bgmAudio) return;
+  if (bgmPlaying) {
+    bgmAudio.pause();
+    bgmPlaying = false;
+  } else {
+    bgmAudio.play().then(() => {
+      bgmPlaying = true;
+    }).catch(e => console.log('BGM play failed:', e));
+  }
+}
+
+// 初始化背景音乐
+initBackgroundMusic();
+
 const WORDS = [
   { en: 'devoted', zh: '奉献的' },
   { en: 'persistent', zh: '坚持不懈的' },
