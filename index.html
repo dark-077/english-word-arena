@@ -830,6 +830,18 @@ function toggleBackgroundMusic() {
   updateBgmButton();
 }
 
+// 答题阶段自动降低音量，确保音效清晰
+function bgmLowerForQuiz() {
+  if (!bgmAudio || !bgmPlaying) return;
+  bgmAudio.volume = 0.08;
+}
+
+// 非答题阶段恢复正常音量
+function bgmRestoreVolume() {
+  if (!bgmAudio || !bgmPlaying) return;
+  bgmAudio.volume = 0.25;
+}
+
 function updateBgmButton() {
   const buttons = document.querySelectorAll('.bgm-toggle');
   buttons.forEach(btn => {
@@ -1002,6 +1014,7 @@ function startGame() {
 
   renderGameBoard();
   showScreen('game');
+  bgmLowerForQuiz();
   setTimeout(() => loadQuestion(), 600);
 }
 
@@ -1236,6 +1249,7 @@ function endGame() {
   });
 
   showScreen('result');
+  bgmRestoreVolume();
   spawnConfetti();
 }
 
@@ -1296,6 +1310,7 @@ function showScreen(name) {
 
 // ============ RESTART ============
 document.getElementById('restart-btn').addEventListener('click', () => {
+  bgmRestoreVolume();
   showScreen('start');
 });
 
