@@ -735,6 +735,7 @@ body[data-mode="multi"] .progress-dot.done {
 
 <!-- START SCREEN -->
 <div id="start-screen" class="screen">
+  <button class="bgm-toggle on" id="bgm-toggle-btn-start" onclick="toggleBackgroundMusic()" title="点击关闭背景音乐">🔊</button>
   <h1 class="start-title">WORD ARENA</h1>
   <p class="start-subtitle">英语单词PK大擂台</p>
   <div class="player-count-selector">
@@ -782,32 +783,40 @@ body[data-mode="multi"] .progress-dot.done {
 // ============ BACKGROUND MUSIC ============
 let bgmAudio = null;
 let bgmPlaying = false;
-let bgmEnabled = true; // 用户是否开启了BGM
+let bgmEnabled = true;
+let bgmLoadFailed = false;
 
 function initBackgroundMusic() {
   bgmAudio = new Audio('background_music.mp3');
   bgmAudio.loop = true;
   bgmAudio.volume = 0.25;
+  bgmAudio.preload = 'auto';
+
+  // 加载失败处理：防止课堂演示时 BGM 悄悄失效
+  bgmAudio.addEventListener('error', () => {
+    bgmLoadFailed = true;
+    updateBgmButton();
+    console.warn('BGM 文件加载失败，请检查 background_music.mp3 是否存在');
+  });
 
   // 页面任意位置第一次点击后尝试播放（绕过浏览器自动播放限制）
   document.addEventListener('click', tryAutoPlayBGM);
 }
 
 function tryAutoPlayBGM() {
-  if (!bgmEnabled || bgmPlaying || !bgmAudio) return;
+  if (!bgmEnabled || bgmPlaying || !bgmAudio || bgmLoadFailed) return;
   bgmAudio.play().then(() => {
     bgmPlaying = true;
     updateBgmButton();
-    // 成功播放后移除这个一次性监听
     document.removeEventListener('click', tryAutoPlayBGM);
   }).catch(e => {
-    // 浏览器限制自动播放，用户需要手动点击按钮
+    // 浏览器限制自动播放，用户需手动点击按钮
     console.log('BGM auto-play blocked, waiting for user interaction');
   });
 }
 
 function toggleBackgroundMusic() {
-  if (!bgmAudio) return;
+  if (!bgmAudio || bgmLoadFailed) return;
   if (bgmPlaying) {
     bgmAudio.pause();
     bgmPlaying = false;
@@ -824,7 +833,11 @@ function toggleBackgroundMusic() {
 function updateBgmButton() {
   const buttons = document.querySelectorAll('.bgm-toggle');
   buttons.forEach(btn => {
-    if (bgmPlaying) {
+    if (bgmLoadFailed) {
+      btn.innerHTML = '⚠️';
+      btn.title = 'BGM 加载失败，请检查文件';
+      btn.classList.remove('on');
+    } else if (bgmPlaying) {
       btn.innerHTML = '🔊';
       btn.title = '点击关闭背景音乐';
       btn.classList.add('on');
