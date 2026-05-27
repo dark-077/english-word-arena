@@ -646,6 +646,37 @@ body[data-mode="multi"] .progress-dot.done {
   box-shadow: 0 8px 30px rgba(255,59,92,0.5);
 }
 
+/* ============ BGM TOGGLE BUTTON ============ */
+.bgm-toggle {
+  position: fixed;
+  bottom: 1.2rem;
+  right: 1.2rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #ffffff30;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(10px);
+  font-size: 1.4rem;
+  cursor: pointer;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  opacity: 0.5;
+}
+.bgm-toggle:hover {
+  opacity: 1;
+  border-color: #ffffff60;
+  transform: scale(1.1);
+}
+.bgm-toggle.on {
+  opacity: 0.85;
+  border-color: var(--gold);
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+
 /* ============ PARTICLES ============ */
 .particle {
   position: fixed;
@@ -720,6 +751,7 @@ body[data-mode="multi"] .progress-dot.done {
 
 <!-- GAME SCREEN -->
 <div id="game-screen" class="screen hidden">
+  <button class="bgm-toggle on" id="bgm-toggle-btn" onclick="toggleBackgroundMusic()" title="点击关闭背景音乐">🔊</button>
   <div class="game-top-bar">
     <div class="round-indicator">第 <span id="round-num">1</span> / 10 题</div>
   </div>
@@ -740,6 +772,7 @@ body[data-mode="multi"] .progress-dot.done {
 
 <!-- RESULT SCREEN -->
 <div id="result-screen" class="screen hidden">
+  <button class="bgm-toggle on" id="bgm-toggle-btn2" onclick="toggleBackgroundMusic()" title="点击关闭背景音乐">🔊</button>
   <div class="result-title">🏆 <span class="winner-name" id="winner-name"></span> 获胜！</div>
   <div class="ranking-list" id="ranking-list"></div>
   <button class="restart-btn" id="restart-btn">再来一局</button>
@@ -749,20 +782,28 @@ body[data-mode="multi"] .progress-dot.done {
 // ============ BACKGROUND MUSIC ============
 let bgmAudio = null;
 let bgmPlaying = false;
+let bgmEnabled = true; // 用户是否开启了BGM
 
 function initBackgroundMusic() {
   bgmAudio = new Audio('background_music.mp3');
   bgmAudio.loop = true;
-  bgmAudio.volume = 0.3;
-  
-  // 用户交互后自动播放
-  document.addEventListener('click', () => {
-    if (!bgmPlaying && bgmAudio) {
-      bgmAudio.play().then(() => {
-        bgmPlaying = true;
-      }).catch(e => console.log('BGM play failed:', e));
-    }
-  }, { once: true });
+  bgmAudio.volume = 0.25;
+
+  // 页面任意位置第一次点击后尝试播放（绕过浏览器自动播放限制）
+  document.addEventListener('click', tryAutoPlayBGM);
+}
+
+function tryAutoPlayBGM() {
+  if (!bgmEnabled || bgmPlaying || !bgmAudio) return;
+  bgmAudio.play().then(() => {
+    bgmPlaying = true;
+    updateBgmButton();
+    // 成功播放后移除这个一次性监听
+    document.removeEventListener('click', tryAutoPlayBGM);
+  }).catch(e => {
+    // 浏览器限制自动播放，用户需要手动点击按钮
+    console.log('BGM auto-play blocked, waiting for user interaction');
+  });
 }
 
 function toggleBackgroundMusic() {
@@ -770,11 +811,29 @@ function toggleBackgroundMusic() {
   if (bgmPlaying) {
     bgmAudio.pause();
     bgmPlaying = false;
+    bgmEnabled = false;
   } else {
+    bgmEnabled = true;
     bgmAudio.play().then(() => {
       bgmPlaying = true;
     }).catch(e => console.log('BGM play failed:', e));
   }
+  updateBgmButton();
+}
+
+function updateBgmButton() {
+  const buttons = document.querySelectorAll('.bgm-toggle');
+  buttons.forEach(btn => {
+    if (bgmPlaying) {
+      btn.innerHTML = '🔊';
+      btn.title = '点击关闭背景音乐';
+      btn.classList.add('on');
+    } else {
+      btn.innerHTML = '🔇';
+      btn.title = '点击开启背景音乐';
+      btn.classList.remove('on');
+    }
+  });
 }
 
 // 初始化背景音乐
